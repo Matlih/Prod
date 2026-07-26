@@ -507,6 +507,11 @@ export default function App() {
                   ))}
                 </div>
               </div>
+
+              {/* Version Label */}
+              <div className="pt-6 pb-2 text-center">
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v1.0.0</span>
+              </div>
             </div>
           </div>
         </div>
