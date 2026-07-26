@@ -1,0 +1,16 @@
+{
+  "short_name": "Prod",
+  "name": "Prod",
+  "description": "Minimalist, high-performance time-boxing web application designed to enforce cognitive pacing.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23171717'/><circle cx='50' cy='50' r='30' fill='%23ffffff'/></svg>",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#171717",
+  "background_color": "#ffffff"
+}
