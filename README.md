@@ -13,7 +13,7 @@
 
 ---
 
-I built **Prod** for a very specific reason: the girl I like was working so intensely without taking any breaks that she was burning herself out and getting constant headaches. It pains me just seeing her suffer.
+I built **Prod** for a very specific reason: Jah (the girl I like) was working so intensely without taking any breaks that she was burning herself out and getting constant headaches. It pains me just seeing her suffer.
 
 I wanted to make something beautiful, unobtrusive, and simple to gently remind her to step away, rest her eyes, take a breath, and that the world can wait. This app is designed to enforce the 90/15 Ultradian rhythm (or any custom block) so you can work deeply without sacrificing your well-being.
 
