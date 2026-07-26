@@ -1,6 +1,6 @@
 <div align="center">
   <img src="public/Prod.png" alt="Prod Logo" width="128" />
-  <h1>Prod</h1>
+  <h1>Prod [v1.1.0]</h1>
   <p>A minimalist, zero-friction desktop timer designed to enforce cognitive pacing.</p>
 </div>
 
@@ -13,6 +13,7 @@ I wanted to make something beautiful, unobtrusive, and simple to gently remind h
 ## ✨ Features
 
 - **Zero Bloat:** No task lists, no gamification. Just pure, minimalist time-boxing.
+- **Custom Themes (New):** A built-in theme engine to personalize light and dark mode colors with exact hex codes.
 - **Always on Top:** Pin it as a tiny, floating widget to any corner of your screen.
 - **Window Memory:** Remembers exactly what size and coordinate position you last left it.
 - **Dynamic Visuals:** Four responsive background animations (Outline, Line, Water, Heartbeat Pulse).
@@ -27,7 +28,7 @@ I wanted to make something beautiful, unobtrusive, and simple to gently remind h
 ## 💻 Installation
 
 ### Standard Users (Recommended)
-You can simply download the latest standalone executable (`.exe` or `.msi`) for your operating system directly from the [Releases](https://github.com/Matlih/Prod/releases) page. No developer setup required!
+You can simply download the latest Windows Installer (`.msi`) directly from the [Releases](https://github.com/Matlih/Prod/releases) page. No developer setup required!
 
 ### Developers
 To run this app locally or compile it from source:
