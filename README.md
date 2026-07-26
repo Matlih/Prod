@@ -27,7 +27,7 @@ I wanted to make something beautiful, unobtrusive, and simple to gently remind h
 ## 💻 Installation
 
 ### Standard Users (Recommended)
-You can simply download the latest standalone executable (`.exe` or `.msi`) for your operating system directly from the [Releases](https://github.com/yourusername/prod/releases) page. No developer setup required!
+You can simply download the latest standalone executable (`.exe` or `.msi`) for your operating system directly from the [Releases](https://github.com/Matlih/Prod/releases) page. No developer setup required!
 
 ### Developers
 To run this app locally or compile it from source:
