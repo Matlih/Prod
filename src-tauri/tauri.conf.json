@@ -30,6 +30,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.prod.app",
+      "publisher": "Matlih",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
