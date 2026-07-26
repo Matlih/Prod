@@ -1,6 +1,13 @@
 <div align="center">
   <img src="public/Prod.png" alt="Prod Logo" width="128" />
-  <h1>Prod [v1.1.0]</h1>
+  <h1>Prod</h1>
+  
+  <p>
+    <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-blue?style=for-the-badge&color=2563eb" />
+    <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&color=2563eb" />
+    <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-blue?style=for-the-badge&color=171717" />
+  </p>
+
   <p>A minimalist, zero-friction desktop timer designed to enforce cognitive pacing.</p>
 </div>
 
