@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "Prod",
-    "version": "1.1.0"
+    "version": "2.0.0"
   },
   "tauri": {
     "allowlist": {
@@ -56,10 +56,12 @@
     },
     "windows": [
       {
+        "decorations": false,
+        "transparent": true,
         "fullscreen": false,
         "height": 600,
-        "minHeight": 200,
-        "minWidth": 300,
+        "minHeight": 100,
+        "minWidth": 150,
         "resizable": true,
         "title": "Prod",
         "width": 800

@@ -3,7 +3,7 @@
   <h1>Prod</h1>
   
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-1.1.0-blue?style=for-the-badge&color=2563eb" />
+    <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge&color=2563eb" />
     <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&color=2563eb" />
     <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-blue?style=for-the-badge&color=171717" />
   </p>
@@ -19,8 +19,11 @@ I wanted to make something beautiful, unobtrusive, and simple to gently remind h
 
 ## ✨ Features
 
+- **True Borderless Architecture:** Floats on your screen as a pristine, borderless, rounded widget without a clunky OS title bar.
+- **Invisible Drag Zone:** Features a native drag handle tucked at the top edge that never conflicts with clicks.
+- **Hover-to-Close:** A minimalist close button that elegantly fades into view only when you need it.
+- **Custom Theme Engine:** A built-in theme engine to personalize light and dark mode colors with exact hex codes.
 - **Zero Bloat:** No task lists, no gamification. Just pure, minimalist time-boxing.
-- **Custom Themes (New):** A built-in theme engine to personalize light and dark mode colors with exact hex codes.
 - **Always on Top:** Pin it as a tiny, floating widget to any corner of your screen.
 - **Window Memory:** Remembers exactly what size and coordinate position you last left it.
 - **Dynamic Visuals:** Four responsive background animations (Outline, Line, Water, Heartbeat Pulse).

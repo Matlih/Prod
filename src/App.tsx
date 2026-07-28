@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Settings as SettingsIcon, Pin, RotateCcw, X, Moon, Sun, Trash2, Volume2, VolumeX, Bell, Zap, Waves } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { appWindow } from '@tauri-apps/api/window';
 
 // --- Types & Constants ---
 type Preset = '90/15' | '25/5' | 'custom' | string;
@@ -344,9 +345,9 @@ export default function App() {
   const currentLabelColor = activePalette ? (phase === 'work' ? activePalette.workLabel : phase === 'break' ? activePalette.restLabel : (settings.isDarkMode ? '#fafafa' : '#171717')) : undefined;
   const currentTimerColor = activePalette ? (phase === 'work' ? activePalette.workTimer : phase === 'break' ? activePalette.restTimer : (settings.isDarkMode ? '#fafafa' : '#171717')) : undefined;
   const displayBgColor = () => {
-    if (phase === 'work') return 'bg-blue-50/50 dark:bg-blue-900/10';
-    if (phase === 'break') return 'bg-amber-50/50 dark:bg-amber-900/10';
-    return 'bg-transparent';
+    if (phase === 'work') return 'bg-blue-50 dark:bg-blue-900/20';
+    if (phase === 'break') return 'bg-amber-50 dark:bg-amber-900/20';
+    return 'bg-neutral-50 dark:bg-neutral-900';
   };
 
   // Calculate progress for animation
@@ -355,9 +356,20 @@ export default function App() {
 
   return (
     <div 
-      className={`flex flex-col items-center justify-center w-full h-screen relative overflow-hidden transition-colors duration-700 ${displayBgColor()}`}
+      className={`group flex flex-col items-center justify-center w-full h-screen relative overflow-hidden transition-colors duration-700 rounded-xl border border-black/5 dark:border-white/5 ${displayBgColor()}`}
       style={{ color: currentAnimationColor }}
     >
+      
+      {/* Drag Region Handle */}
+      <div data-tauri-drag-region className="absolute top-0 left-0 right-0 h-6 cursor-grab z-50" />
+      
+      {/* Close Button */}
+      <button 
+        onClick={() => appWindow.close()} 
+        className="absolute top-2 right-2 p-1 rounded-md text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 opacity-0 group-hover:opacity-100 transition z-50"
+      >
+        <X size={14} />
+      </button>
       
       {/* Background Animation */}
       {settings.animationStyle === '1' && <OutlineAnimation progress={progress} />}
@@ -390,27 +402,27 @@ export default function App() {
         </div>
 
         {/* Controls Dock */}
-        <div className="mt-[4vmin] md:mt-8 flex items-center space-x-4 opacity-15 hover:opacity-100 transition-opacity duration-300 text-neutral-900 dark:text-neutral-50 pointer-events-auto">
+        <div className="mt-[4vmin] md:mt-8 flex items-center gap-[clamp(8px,4vmin,16px)] opacity-15 hover:opacity-100 transition-opacity duration-300 text-neutral-900 dark:text-neutral-50 pointer-events-auto">
           <button 
             onClick={(e) => { e.stopPropagation(); resetTimer(); }} 
             title="Reset Timer" 
-            className="p-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+            className="p-[clamp(6px,3vmin,12px)] rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition flex items-center justify-center"
           >
-            <RotateCcw size={20} />
+            <RotateCcw className="w-[clamp(12px,6vmin,20px)] h-[clamp(12px,6vmin,20px)]" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); togglePip(); }} 
             title={isPinned ? "Unpin from screen" : "Pin to screen"} 
-            className={`p-3 rounded-full transition ${isPinned ? 'bg-neutral-800 text-white dark:bg-white dark:text-neutral-900' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'}`}
+            className={`p-[clamp(6px,3vmin,12px)] rounded-full transition flex items-center justify-center ${isPinned ? 'bg-neutral-800 text-white dark:bg-white dark:text-neutral-900' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'}`}
           >
-            <Pin size={20} />
+            <Pin className="w-[clamp(12px,6vmin,20px)] h-[clamp(12px,6vmin,20px)]" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); setShowSettings(true); }} 
             title="Settings" 
-            className="p-3 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+            className="p-[clamp(6px,3vmin,12px)] rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition flex items-center justify-center"
           >
-            <SettingsIcon size={20} />
+            <SettingsIcon className="w-[clamp(12px,6vmin,20px)] h-[clamp(12px,6vmin,20px)]" />
           </button>
         </div>
       </div>
@@ -639,7 +651,7 @@ export default function App() {
 
               {/* Version Label */}
               <div className="pt-6 pb-2 text-center">
-                <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v1.1.0</span>
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v2.0.0</span>
               </div>
             </div>
           </div>

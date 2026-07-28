@@ -4,10 +4,10 @@
 
 @layer base {
   body {
-    @apply bg-neutral-50 text-neutral-900 transition-colors duration-500 ease-in-out;
+    @apply bg-transparent text-neutral-900 transition-colors duration-500 ease-in-out;
   }
   .dark body {
-    @apply bg-neutral-900 text-neutral-50;
+    @apply bg-transparent text-neutral-50;
   }
 }
 
