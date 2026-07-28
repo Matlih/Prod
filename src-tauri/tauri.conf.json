@@ -8,11 +8,14 @@
   },
   "package": {
     "productName": "Prod",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": false,
+      "window": {
+        "all": true
+      }
     },
     "bundle": {
       "active": true,
@@ -49,7 +52,7 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
     },
     "updater": {
       "active": false

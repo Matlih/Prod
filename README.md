@@ -3,7 +3,7 @@
   <h1>Prod</h1>
   
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge&color=2563eb" />
+    <img alt="Version" src="https://img.shields.io/badge/version-2.1.0-blue?style=for-the-badge&color=2563eb" />
     <img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&color=2563eb" />
     <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-blue?style=for-the-badge&color=171717" />
   </p>

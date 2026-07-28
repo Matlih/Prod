@@ -7,7 +7,9 @@ fn main() {
     .setup(|app| {
         use tauri::Manager;
         if let Some(window) = app.get_window("main") {
-            let _ = window.set_decorations(false);
+            if let Err(e) = window.set_decorations(false) {
+                eprintln!("Failed to set window decorations: {}", e);
+            }
         }
         Ok(())
     })
