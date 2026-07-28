@@ -1,5 +1,6 @@
 export type Preset = '90/15' | '25/5' | 'custom' | string;
-export type TimerPhase = 'idle' | 'work' | 'break' | 'paused';
+export type TimerPhase = 'work' | 'break';
+export type TimerStatus = 'idle' | 'running' | 'paused';
 export type AnimationStyle = '1' | '2' | '3' | '8';
 export type SoundType = 'chime' | 'digital' | 'bowl';
 

@@ -9,7 +9,7 @@ import { X } from 'lucide-react';
 
 export default function App() {
   const { settings, setSettings } = useSettings();
-  const { phase, timeLeft, toggleTimer, resetTimer } = useTimer(settings);
+  const { phase, status, timeLeft, currentTotalDuration, toggleTimer, resetTimer } = useTimer(settings);
   const [showSettings, setShowSettings] = useState(false);
 
   // Resolve Custom Colors
@@ -20,8 +20,7 @@ export default function App() {
   const currentTimerColor = activePalette ? (phase === 'work' ? activePalette.workTimer : phase === 'break' ? activePalette.restTimer : (settings.isDarkMode ? '#fafafa' : '#171717')) : undefined;
 
   // Calculate progress for animation
-  const totalSeconds = phase === 'break' ? settings.breakDuration * 60 : settings.workDuration * 60;
-  const progress = phase === 'idle' ? 1 : timeLeft / totalSeconds;
+  const progress = status === 'idle' ? 1 : timeLeft / currentTotalDuration;
 
   return (
     <div 
@@ -29,15 +28,30 @@ export default function App() {
       style={{ color: currentAnimationColor }}
     >
       
+      {/* Clickable Background layer */}
+      <div 
+        className={`absolute inset-0 z-0 cursor-pointer transition-colors duration-700 ${
+          status === 'idle' ? 'bg-transparent' :
+          phase === 'work' ? 'bg-blue-50 dark:bg-blue-900/20' : 
+          'bg-amber-50 dark:bg-amber-900/20'
+        }`}  
+        onClick={toggleTimer}
+        title="Click to Play/Pause"
+      />
+
       {/* Drag Region Handle */}
       <div data-tauri-drag-region className="absolute top-0 left-0 right-0 h-6 cursor-grab z-50" />
       
-      {/* Close Button (Dynamic Import with Caching is better, but doing it raw here is fine since it's a one-off close) */}
+      {/* Close Button */}
       <button 
         onClick={async () => {
           if (window.__TAURI__) {
-            const { appWindow } = await import('@tauri-apps/api/window');
-            appWindow.close();
+            try {
+              const { appWindow } = await import('@tauri-apps/api/window');
+              appWindow.close().catch(() => {});
+            } catch (err) {
+              console.error("Failed to load Tauri window API", err);
+            }
           }
         }} 
         className="absolute top-2 right-2 p-1 rounded-md text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 opacity-0 group-hover:opacity-100 transition z-50"
@@ -45,28 +59,20 @@ export default function App() {
         <X size={14} />
       </button>
       
-      {/* Background Animation */}
-      {settings.animationStyle === '1' && <OutlineAnimation progress={progress} />}
-      {settings.animationStyle === '2' && <LineAnimation progress={progress} />}
-      {settings.animationStyle === '3' && <WaterAnimation progress={progress} />}
-      {settings.animationStyle === '8' && <PulseAnimation progress={progress} />}
-
-      {/* Clickable Background layer */}
-      <div 
-        className={`absolute inset-0 z-0 cursor-pointer transition-colors duration-700 ${
-          phase === 'work' ? 'bg-blue-50 dark:bg-blue-900/20' : 
-          phase === 'break' ? 'bg-amber-50 dark:bg-amber-900/20' : 
-          'bg-transparent'
-        }`} 
-        onClick={toggleTimer}
-        title="Click to Play/Pause"
-      />
+      {/* Background Animation (Z-index 0, but rendered after background so it sits on top) */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {settings.animationStyle === '1' && <OutlineAnimation progress={progress} status={status} />}
+        {settings.animationStyle === '2' && <LineAnimation progress={progress} status={status} />}
+        {settings.animationStyle === '3' && <WaterAnimation progress={progress} status={status} />}
+        {settings.animationStyle === '8' && <PulseAnimation progress={progress} status={status} />}
+      </div>
 
       {/* Main UI */}
       <div className="flex flex-col items-center justify-center w-full h-full select-none z-10 relative pointer-events-none transition-transform duration-300 active:scale-[0.98]">
         
         <TimerDisplay 
           phase={phase} 
+          status={status}
           timeLeft={timeLeft} 
           currentLabelColor={currentLabelColor} 
           currentTimerColor={currentTimerColor} 

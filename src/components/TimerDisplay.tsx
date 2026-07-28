@@ -1,17 +1,19 @@
 import React from 'react';
-import { TimerPhase } from '../types';
+import { TimerPhase, TimerStatus } from '../types';
 
 interface TimerDisplayProps {
   phase: TimerPhase;
+  status: TimerStatus;
   timeLeft: number;
   currentLabelColor?: string;
   currentTimerColor?: string;
 }
 
-export const TimerDisplay = ({ phase, timeLeft, currentLabelColor, currentTimerColor }: TimerDisplayProps) => {
+export const TimerDisplay = ({ phase, status, timeLeft, currentLabelColor, currentTimerColor }: TimerDisplayProps) => {
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
+    const ceilSeconds = Math.ceil(seconds);
+    const m = Math.floor(ceilSeconds / 60);
+    const s = ceilSeconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
@@ -21,7 +23,7 @@ export const TimerDisplay = ({ phase, timeLeft, currentLabelColor, currentTimerC
         className="text-[4vmin] md:text-sm font-medium tracking-widest uppercase mb-[2vmin] md:mb-4 opacity-70 transition-colors duration-700"
         style={{ color: currentLabelColor }}
       >
-        {phase === 'idle' ? 'Ready' : phase === 'paused' ? 'Paused' : phase === 'work' ? 'Deep Work' : 'Rest'}
+        {status === 'idle' ? 'Ready' : status === 'paused' ? 'Paused' : phase === 'work' ? 'Deep Work' : 'Rest'}
       </div>
       
       <div 

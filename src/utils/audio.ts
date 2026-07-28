@@ -6,9 +6,17 @@ function getAudioContext() {
     globalAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
   if (globalAudioCtx.state === 'suspended') {
-    globalAudioCtx.resume();
+    globalAudioCtx.resume().catch(() => {});
   }
   return globalAudioCtx;
+}
+
+export function initAudio() {
+  try {
+    getAudioContext();
+  } catch (e) {
+    // Ignore error if audio isn't supported
+  }
 }
 
 export function playSound(type: SoundType, isMuted: boolean) {

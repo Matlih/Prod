@@ -33,17 +33,26 @@ const ColorPickerRow = ({ label, value, onChange }: { label: string; value: stri
 export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalProps) => {
   const [themeEditorMode, setThemeEditorMode] = useState<'light' | 'dark'>('dark');
   const [presetName, setPresetName] = useState('');
-  const [presetWork, setPresetWork] = useState(60);
-  const [presetBreak, setPresetBreak] = useState(10);
+  const [presetWorkStr, setPresetWorkStr] = useState('60');
+  const [presetBreakStr, setPresetBreakStr] = useState('10');
 
   const saveCustomPreset = () => {
     if (!presetName.trim()) return;
+    
+    const workNum = parseInt(presetWorkStr, 10);
+    const breakNum = parseInt(presetBreakStr, 10);
+    
+    if (isNaN(workNum) || workNum <= 0 || isNaN(breakNum) || breakNum <= 0) {
+        alert("Please enter valid positive numbers for durations");
+        return;
+    }
+
     const newId = Date.now().toString();
     const newPreset: CustomPreset = {
       id: newId,
       name: presetName.trim(),
-      workDuration: presetWork,
-      breakDuration: presetBreak,
+      workDuration: workNum,
+      breakDuration: breakNum,
     };
     setSettings(s => ({
       ...s,
@@ -112,7 +121,7 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                   <button
                     key={styleId}
                     onClick={() => setSettings(s => ({ ...s, animationStyle: styleId }))}
-                    className={`p-3 rounded-xl border transition ${settings.animationStyle === styleId ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700'}`}
+                    className={`p-3 rounded-xl border transition ${settings.animationStyle === styleId ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:border-neutral-300'}`}
                   >
                     {labels[styleId]}
                   </button>
@@ -127,27 +136,27 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setSettings(s => ({ ...s, preset: '90/15', workDuration: 90, breakDuration: 15 }))}
-                className={`p-3 rounded-xl border transition ${settings.preset === '90/15' ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700'}`}
+                className={`p-3 rounded-xl border transition ${settings.preset === '90/15' ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:border-neutral-300'}`}
               >
                 90/15 Ultradian
               </button>
               <button
                 onClick={() => setSettings(s => ({ ...s, preset: '25/5', workDuration: 25, breakDuration: 5 }))}
-                className={`p-3 rounded-xl border transition ${settings.preset === '25/5' ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700'}`}
+                className={`p-3 rounded-xl border transition ${settings.preset === '25/5' ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:border-neutral-300'}`}
               >
                 25/5 Pomodoro
               </button>
               {Object.values(settings.savedPresets || {}).map(p => (
-                <div key={p.id} className="relative group">
+                <div key={p.id} className="relative group/preset">
                   <button
                     onClick={() => setSettings(s => ({ ...s, preset: p.id, workDuration: p.workDuration, breakDuration: p.breakDuration }))}
-                    className={`w-full p-3 rounded-xl border transition ${settings.preset === p.id ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700'}`}
+                    className={`w-full p-3 rounded-xl border transition ${settings.preset === p.id ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:border-neutral-300'}`}
                   >
                     {p.name}
                   </button>
                   <button 
                     onClick={(e) => deleteCustomPreset(p.id, e)}
-                    className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover/preset:opacity-100 transition-opacity"
                     title="Delete Preset"
                   >
                     <X size={12} />
@@ -179,8 +188,8 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                 <label className="block text-xs mb-1 opacity-70">Deep Work (min)</label>
                 <input 
                   type="number" 
-                  value={presetWork}
-                  onChange={(e) => setPresetWork(Number(e.target.value) || 1)}
+                  value={presetWorkStr}
+                  onChange={(e) => setPresetWorkStr(e.target.value)}
                   className="w-full p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 border-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition outline-none"
                 />
               </div>
@@ -188,8 +197,8 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                 <label className="block text-xs mb-1 opacity-70">Rest (min)</label>
                 <input 
                   type="number" 
-                  value={presetBreak}
-                  onChange={(e) => setPresetBreak(Number(e.target.value) || 1)}
+                  value={presetBreakStr}
+                  onChange={(e) => setPresetBreakStr(e.target.value)}
                   className="w-full p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 border-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition outline-none"
                 />
               </div>
@@ -222,7 +231,7 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                     setSettings(s => ({ ...s, sound: snd }));
                     playSound(snd, settings.isMuted);
                   }}
-                  className={`flex justify-center items-center p-3 rounded-xl border transition ${settings.sound === snd ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700'} ${settings.isMuted ? 'opacity-50' : ''}`}
+                  className={`flex justify-center items-center p-3 rounded-xl border transition ${settings.sound === snd ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'border-neutral-200 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:border-neutral-300'} ${settings.isMuted ? 'opacity-50' : ''}`}
                   title={snd}
                 >
                   {snd === 'chime' && <Bell size={20} />}
