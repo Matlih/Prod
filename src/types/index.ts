@@ -35,4 +35,5 @@ export interface Settings {
   sound: SoundType;
   isMuted: boolean;
   themeColors?: ThemeColors;
+  isPinned?: boolean;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettings } from './hooks/useSettings';
 import { useTimer } from './hooks/useTimer';
 import { TimerDisplay } from './components/TimerDisplay';
@@ -11,6 +11,21 @@ export default function App() {
   const { settings, setSettings } = useSettings();
   const { phase, status, timeLeft, currentTotalDuration, toggleTimer, resetTimer } = useTimer(settings);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Initialize Pin State on boot
+  useEffect(() => {
+    const initPinState = async () => {
+      if (window.__TAURI__ && settings.isPinned !== undefined) {
+        try {
+          const { appWindow } = await import('@tauri-apps/api/window');
+          await appWindow.setAlwaysOnTop(settings.isPinned);
+        } catch (e) {
+          console.warn("Failed to set pin state", e);
+        }
+      }
+    };
+    initPinState();
+  }, []);
 
   // Resolve Custom Colors
   const activePalette = settings.themeColors ? (settings.isDarkMode ? settings.themeColors.dark : settings.themeColors.light) : undefined;
@@ -81,6 +96,18 @@ export default function App() {
         <ControlsDock 
           onReset={resetTimer} 
           onSettingsClick={() => setShowSettings(true)} 
+          isPinned={!!settings.isPinned}
+          onTogglePin={async (pinned) => {
+            setSettings(s => ({ ...s, isPinned: pinned }));
+            if (window.__TAURI__) {
+              try {
+                const { appWindow } = await import('@tauri-apps/api/window');
+                await appWindow.setAlwaysOnTop(pinned);
+              } catch (e) {
+                console.warn("Failed to pin", e);
+              }
+            }
+          }}
         />
         
       </div>

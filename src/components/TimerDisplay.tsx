@@ -18,7 +18,7 @@ export const TimerDisplay = ({ phase, status, timeLeft, currentLabelColor, curre
   };
 
   return (
-    <>
+    <div className="flex flex-col items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-100 group-hover:translate-y-0 scale-[1.15] translate-y-4">
       <div 
         className="text-[4vmin] md:text-sm font-medium tracking-widest uppercase mb-[2vmin] md:mb-4 opacity-70 transition-colors duration-700"
         style={{ color: currentLabelColor }}
@@ -32,6 +32,6 @@ export const TimerDisplay = ({ phase, status, timeLeft, currentLabelColor, curre
       >
         {formatTime(timeLeft)}
       </div>
-    </>
+    </div>
   );
 };

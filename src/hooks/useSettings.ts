@@ -10,6 +10,7 @@ export const defaultSettings: Settings = {
   savedPresets: {},
   sound: 'chime',
   isMuted: false,
+  isPinned: false,
   themeColors: {
     light: {
       workLabel: '#2563eb', // blue-600

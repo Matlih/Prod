@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Moon, Sun, Volume2, VolumeX, Bell, Zap, Waves } from 'lucide-react';
 import { Settings, SoundType, CustomPreset, AnimationStyle, ThemePalette } from '../types';
 import { playSound } from '../utils/audio';
@@ -35,6 +35,41 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
   const [presetName, setPresetName] = useState('');
   const [presetWorkStr, setPresetWorkStr] = useState('60');
   const [presetBreakStr, setPresetBreakStr] = useState('10');
+  const originalSizeRef = useRef<any>(null);
+
+  useEffect(() => {
+    let appWindow: any;
+    let hasResized = false;
+    
+    const expandWindow = async () => {
+      if (window.__TAURI__) {
+        try {
+          const { appWindow: aw, LogicalSize } = await import('@tauri-apps/api/window');
+          appWindow = aw;
+          const currentSize = await appWindow.outerSize();
+          const factor = await appWindow.scaleFactor();
+          const width = currentSize.width / factor;
+          const height = currentSize.height / factor;
+          
+          if (width < 450 || height < 650) {
+            originalSizeRef.current = currentSize;
+            await appWindow.setSize(new LogicalSize(Math.max(width, 450), Math.max(height, 650)));
+            hasResized = true;
+          }
+        } catch (e) {
+          console.warn("Failed to resize window", e);
+        }
+      }
+    };
+    
+    expandWindow();
+
+    return () => {
+      if (appWindow && hasResized && originalSizeRef.current) {
+        appWindow.setSize(originalSizeRef.current).catch(() => {});
+      }
+    };
+  }, []);
 
   const saveCustomPreset = () => {
     if (!presetName.trim()) return;
