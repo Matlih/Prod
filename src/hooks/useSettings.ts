@@ -11,6 +11,8 @@ export const defaultSettings: Settings = {
   sound: 'chime',
   isMuted: false,
   isPinned: false,
+  strictMode: true,
+  zenModeScale: '80',
   themeColors: {
     light: {
       workLabel: '#2563eb', // blue-600

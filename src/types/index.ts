@@ -36,4 +36,6 @@ export interface Settings {
   isMuted: boolean;
   themeColors?: ThemeColors;
   isPinned?: boolean;
+  strictMode?: boolean;
+  zenModeScale?: '80' | '100';
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSettings } from './hooks/useSettings';
 import { useTimer } from './hooks/useTimer';
 import { TimerDisplay } from './components/TimerDisplay';
@@ -26,6 +26,78 @@ export default function App() {
     };
     initPinState();
   }, []);
+
+  // Deterministic Sizing Engine
+  const userBoundsRef = useRef<{ size?: any; position?: any } | null>(null);
+
+  useEffect(() => {
+    if (!window.__TAURI__) return;
+    
+    const runEngine = async () => {
+      try {
+        const { appWindow, LogicalSize, currentMonitor } = await import('@tauri-apps/api/window');
+        
+        const isDefaultState = phase === 'work' && !showSettings;
+        
+        if (isDefaultState) {
+          // 1. We are in the Default State
+          await appWindow.setFullscreen(false);
+          
+          if (userBoundsRef.current) {
+            // We just returned from a non-default state. Restore the user's custom bounds.
+            if (userBoundsRef.current.size) await appWindow.setSize(userBoundsRef.current.size);
+            if (userBoundsRef.current.position) await appWindow.setPosition(userBoundsRef.current.position);
+            userBoundsRef.current = null; // Clear the cache
+          }
+          return;
+        }
+        
+        // 2. We are entering a non-default state
+        // If we haven't cached the default bounds yet, do it NOW before altering the window.
+        if (!userBoundsRef.current) {
+          userBoundsRef.current = {
+            size: await appWindow.outerSize(),
+            position: await appWindow.outerPosition()
+          };
+        }
+        
+        // 3. Apply the Hierarchy of Needs
+        if (phase === 'break' && settings.strictMode) {
+          if (settings.zenModeScale === '100') {
+             await appWindow.setFullscreen(true);
+          } else {
+             await appWindow.setFullscreen(false);
+             const monitor = await currentMonitor();
+             if (monitor) {
+                const width = Math.min(1200, monitor.size.width * 0.8);
+                const height = Math.min(800, monitor.size.height * 0.8);
+                await appWindow.setSize(new LogicalSize(width, height));
+                await appWindow.center();
+             } else {
+                await appWindow.setSize(new LogicalSize(800, 600));
+                await appWindow.center();
+             }
+          }
+        } else if (showSettings) {
+          await appWindow.setFullscreen(false);
+          // Settings Modal open: expand to fit settings
+          const currentSize = await appWindow.outerSize();
+          const factor = await appWindow.scaleFactor();
+          const width = currentSize.width / factor;
+          const height = currentSize.height / factor;
+          
+          if (width < 450 || height < 650) {
+            await appWindow.setSize(new LogicalSize(Math.max(width, 450), Math.max(height, 650)));
+            // Removed appWindow.center() so it expands in place
+          }
+        }
+      } catch (e) {
+        console.warn("Deterministic sizing engine failed", e);
+      }
+    };
+    
+    runEngine();
+  }, [phase, showSettings, settings.strictMode]);
 
   // Resolve Custom Colors
   const activePalette = settings.themeColors ? (settings.isDarkMode ? settings.themeColors.dark : settings.themeColors.light) : undefined;
@@ -110,6 +182,48 @@ export default function App() {
           }}
         />
         
+      </div>
+
+      {/* Thumb Grip Resize Handle */}
+      <div 
+        className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition duration-300 z-50 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+        onPointerDown={async (e) => {
+          e.preventDefault();
+          const target = e.currentTarget;
+          target.setPointerCapture(e.pointerId);
+          
+          if (window.__TAURI__) {
+            try {
+              const { appWindow, LogicalSize } = await import('@tauri-apps/api/window');
+              let isResizing = false;
+              
+              const onPointerMove = (moveEvent: PointerEvent) => {
+                if (isResizing) return;
+                isResizing = true;
+                requestAnimationFrame(() => {
+                  const newWidth = Math.max(150, Math.round(moveEvent.clientX));
+                  const newHeight = Math.max(100, Math.round(moveEvent.clientY));
+                  appWindow.setSize(new LogicalSize(newWidth, newHeight)).finally(() => {
+                    isResizing = false;
+                  });
+                });
+              };
+              
+              const onPointerUp = (upEvent: PointerEvent) => {
+                target.releasePointerCapture(upEvent.pointerId);
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+              };
+              
+              window.addEventListener('pointermove', onPointerMove);
+              window.addEventListener('pointerup', onPointerUp);
+            } catch (err) { console.warn(err); }
+          }
+        }}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+           <path d="M 10 1 Q 10 10 1 10" />
+        </svg>
       </div>
 
       {/* Settings Modal */}

@@ -38,37 +38,7 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
   const originalSizeRef = useRef<any>(null);
 
   useEffect(() => {
-    let appWindow: any;
-    let hasResized = false;
-    
-    const expandWindow = async () => {
-      if (window.__TAURI__) {
-        try {
-          const { appWindow: aw, LogicalSize } = await import('@tauri-apps/api/window');
-          appWindow = aw;
-          const currentSize = await appWindow.outerSize();
-          const factor = await appWindow.scaleFactor();
-          const width = currentSize.width / factor;
-          const height = currentSize.height / factor;
-          
-          if (width < 450 || height < 650) {
-            originalSizeRef.current = currentSize;
-            await appWindow.setSize(new LogicalSize(Math.max(width, 450), Math.max(height, 650)));
-            hasResized = true;
-          }
-        } catch (e) {
-          console.warn("Failed to resize window", e);
-        }
-      }
-    };
-    
-    expandWindow();
-
-    return () => {
-      if (appWindow && hasResized && originalSizeRef.current) {
-        appWindow.setSize(originalSizeRef.current).catch(() => {});
-      }
-    };
+    // Sizing is now completely managed by the deterministic engine in App.tsx
   }, []);
 
   const saveCustomPreset = () => {
@@ -144,6 +114,42 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
               {settings.isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
               <span className="text-sm">{settings.isDarkMode ? 'Dark' : 'Light'}</span>
             </button>
+          </div>
+
+          {/* Strict Zen Mode */}
+          <div className="flex flex-col p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-medium block">Strict Zen Mode</span>
+                <span className="text-xs text-neutral-500">Auto-expands during breaks</span>
+              </div>
+              <button 
+                onClick={() => setSettings(s => ({ ...s, strictMode: !s.strictMode }))}
+                className={`w-12 h-6 rounded-full transition-colors relative ${settings.strictMode ? 'bg-neutral-900 dark:bg-white' : 'bg-neutral-300 dark:bg-neutral-600'}`}
+              >
+                <div className={`w-4 h-4 rounded-full bg-white dark:bg-neutral-900 absolute top-1 transition-transform ${settings.strictMode ? 'translate-x-7' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            
+            {settings.strictMode && (
+              <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700 flex justify-between items-center">
+                <span className="text-sm font-medium text-neutral-500">Break Screen Cover</span>
+                <div className="flex bg-neutral-200 dark:bg-neutral-700 p-1 rounded-lg">
+                  <button 
+                    onClick={() => setSettings(s => ({ ...s, zenModeScale: '80' }))}
+                    className={`px-3 py-1 text-xs rounded-md transition ${settings.zenModeScale === '80' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
+                  >
+                    80% Cover
+                  </button>
+                  <button 
+                    onClick={() => setSettings(s => ({ ...s, zenModeScale: '100' }))}
+                    className={`px-3 py-1 text-xs rounded-md transition ${settings.zenModeScale === '100' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}
+                  >
+                    100% Full
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Animation Styles */}
@@ -314,7 +320,7 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
           </div>
 
           <div className="pt-6 pb-2 text-center">
-            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v2.1.0</span>
+            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v2.3.0</span>
           </div>
         </div>
       </div>
