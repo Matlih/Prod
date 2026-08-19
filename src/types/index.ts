@@ -25,6 +25,9 @@ export interface ThemeColors {
   dark: ThemePalette;
 }
 
+export type WidgetMode = 'prod' | 'clock' | 'countdown';
+export type FlipFont = 'bodoni' | 'jakarta' | 'mono' | 'digital';
+
 export interface Settings {
   preset: Preset;
   workDuration: number;
@@ -38,4 +41,12 @@ export interface Settings {
   isPinned?: boolean;
   strictMode?: boolean;
   zenModeScale?: '80' | '100';
+  widgetMode?: WidgetMode;
+  flipFont?: FlipFont;
+  showSeconds?: boolean;
+  clockIs24Hour?: boolean;
+  countdownDuration?: number;
+  countdownHours?: number;
+  countdownMinutes?: number;
+  countdownSeconds?: number;
 }

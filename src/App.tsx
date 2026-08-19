@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSettings } from './hooks/useSettings';
 import { useTimer } from './hooks/useTimer';
+import { useCountdown } from './hooks/useCountdown';
 import { TimerDisplay } from './components/TimerDisplay';
+import { ClockMode } from './components/modes/ClockMode';
+import { CountdownMode } from './components/modes/CountdownMode';
 import { ControlsDock } from './components/ControlsDock';
 import { SettingsModal } from './components/SettingsModal';
 import { OutlineAnimation, LineAnimation, WaterAnimation, PulseAnimation } from './components/animations/Animations';
@@ -9,7 +12,24 @@ import { X } from 'lucide-react';
 
 export default function App() {
   const { settings, setSettings } = useSettings();
-  const { phase, status, timeLeft, currentTotalDuration, toggleTimer, resetTimer } = useTimer(settings);
+  const activeMode = settings.widgetMode || 'prod';
+
+  const { phase, status: prodStatus, timeLeft: prodTimeLeft, currentTotalDuration, toggleTimer, resetTimer } = useTimer(settings);
+
+  const rawCountdownSeconds = (
+    (settings.countdownHours !== undefined || settings.countdownMinutes !== undefined || settings.countdownSeconds !== undefined)
+      ? ((settings.countdownHours || 0) * 3600) + ((settings.countdownMinutes || 0) * 60) + (settings.countdownSeconds || 0)
+      : (settings.countdownDuration ? settings.countdownDuration * 60 : 900)
+  );
+
+  const countdownTotalSeconds = rawCountdownSeconds <= 0 ? 10 : rawCountdownSeconds;
+
+  const { status: countdownStatus, timeLeft: countdownTimeLeft, toggleCountdown, resetCountdown } = useCountdown(
+    countdownTotalSeconds,
+    settings.sound,
+    settings.isMuted
+  );
+
   const [showSettings, setShowSettings] = useState(false);
 
   // Initialize Pin State on boot
@@ -27,6 +47,16 @@ export default function App() {
     initPinState();
   }, []);
 
+  // Stop and Reset timers on mode switch
+  const prevModeRef = useRef(activeMode);
+  useEffect(() => {
+    if (prevModeRef.current !== activeMode) {
+      resetTimer();
+      resetCountdown();
+      prevModeRef.current = activeMode;
+    }
+  }, [activeMode, resetTimer, resetCountdown]);
+
   // Deterministic Sizing Engine
   const userBoundsRef = useRef<{ size?: any; position?: any } | null>(null);
 
@@ -37,7 +67,7 @@ export default function App() {
       try {
         const { appWindow, LogicalSize, currentMonitor } = await import('@tauri-apps/api/window');
         
-        const isDefaultState = phase === 'work' && !showSettings;
+        const isDefaultState = (activeMode !== 'prod' || phase === 'work') && !showSettings;
         
         if (isDefaultState) {
           // 1. We are in the Default State
@@ -62,7 +92,7 @@ export default function App() {
         }
         
         // 3. Apply the Hierarchy of Needs
-        if (phase === 'break' && settings.strictMode) {
+        if (activeMode === 'prod' && phase === 'break' && settings.strictMode) {
           if (settings.zenModeScale === '100') {
              await appWindow.setFullscreen(true);
           } else {
@@ -86,9 +116,8 @@ export default function App() {
           const width = currentSize.width / factor;
           const height = currentSize.height / factor;
           
-          if (width < 450 || height < 650) {
-            await appWindow.setSize(new LogicalSize(Math.max(width, 450), Math.max(height, 650)));
-            // Removed appWindow.center() so it expands in place
+          if (width < 500 || height < 680) {
+            await appWindow.setSize(new LogicalSize(Math.max(width, 500), Math.max(height, 680)));
           }
         }
       } catch (e) {
@@ -97,7 +126,7 @@ export default function App() {
     };
     
     runEngine();
-  }, [phase, showSettings, settings.strictMode]);
+  }, [phase, showSettings, settings.strictMode, activeMode, settings.zenModeScale]);
 
   // Resolve Custom Colors
   const activePalette = settings.themeColors ? (settings.isDarkMode ? settings.themeColors.dark : settings.themeColors.light) : undefined;
@@ -107,7 +136,24 @@ export default function App() {
   const currentTimerColor = activePalette ? (phase === 'work' ? activePalette.workTimer : phase === 'break' ? activePalette.restTimer : (settings.isDarkMode ? '#fafafa' : '#171717')) : undefined;
 
   // Calculate progress for animation
-  const progress = status === 'idle' ? 1 : timeLeft / currentTotalDuration;
+  const progress = prodStatus === 'idle' ? 1 : prodTimeLeft / currentTotalDuration;
+
+  const handleBackgroundClick = () => {
+    if (activeMode === 'prod') {
+      toggleTimer();
+    } else if (activeMode === 'countdown') {
+      toggleCountdown();
+    }
+  };
+
+  const handleReset = () => {
+    if (activeMode === 'prod') {
+      return resetTimer;
+    } else if (activeMode === 'countdown') {
+      return resetCountdown;
+    }
+    return undefined;
+  };
 
   return (
     <div 
@@ -117,13 +163,13 @@ export default function App() {
       
       {/* Clickable Background layer */}
       <div 
-        className={`absolute inset-0 z-0 cursor-pointer transition-colors duration-700 ${
-          status === 'idle' ? 'bg-transparent' :
-          phase === 'work' ? 'bg-blue-50 dark:bg-blue-900/20' : 
-          'bg-amber-50 dark:bg-amber-900/20'
+        className={`absolute inset-0 z-0 ${activeMode !== 'clock' ? 'cursor-pointer' : ''} transition-colors duration-700 ${
+          activeMode === 'prod'
+            ? prodStatus === 'idle' ? 'bg-transparent' : phase === 'work' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
+            : 'bg-transparent'
         }`}  
-        onClick={toggleTimer}
-        title="Click to Play/Pause"
+        onClick={handleBackgroundClick}
+        title={activeMode !== 'clock' ? "Click to Play/Pause" : undefined}
       />
 
       {/* Drag Region Handle */}
@@ -141,32 +187,57 @@ export default function App() {
             }
           }
         }} 
-        className="absolute top-2 right-2 p-1 rounded-md text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 opacity-0 group-hover:opacity-100 transition z-50"
+        className="absolute top-0 right-0 w-8 h-8 flex items-start justify-end p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white opacity-0 group-hover:opacity-100 transition z-50"
       >
-        <X size={14} />
+        <X size={12} />
       </button>
       
-      {/* Background Animation (Z-index 0, but rendered after background so it sits on top) */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {settings.animationStyle === '1' && <OutlineAnimation progress={progress} status={status} />}
-        {settings.animationStyle === '2' && <LineAnimation progress={progress} status={status} />}
-        {settings.animationStyle === '3' && <WaterAnimation progress={progress} status={status} />}
-        {settings.animationStyle === '8' && <PulseAnimation progress={progress} status={status} />}
-      </div>
+      {/* Background Animation - Prod Mode Only */}
+      {activeMode === 'prod' && (
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          {settings.animationStyle === '1' && <OutlineAnimation progress={progress} status={prodStatus} />}
+          {settings.animationStyle === '2' && <LineAnimation progress={progress} status={prodStatus} />}
+          {settings.animationStyle === '3' && <WaterAnimation progress={progress} status={prodStatus} />}
+          {settings.animationStyle === '8' && <PulseAnimation progress={progress} status={prodStatus} />}
+        </div>
+      )}
 
       {/* Main UI */}
       <div className="flex flex-col items-center justify-center w-full h-full select-none z-10 relative pointer-events-none transition-transform duration-300 active:scale-[0.98]">
         
-        <TimerDisplay 
-          phase={phase} 
-          status={status}
-          timeLeft={timeLeft} 
-          currentLabelColor={currentLabelColor} 
-          currentTimerColor={currentTimerColor} 
-        />
+        {activeMode === 'prod' && (
+          <TimerDisplay 
+            phase={phase} 
+            status={prodStatus}
+            timeLeft={prodTimeLeft} 
+            currentLabelColor={currentLabelColor} 
+            currentTimerColor={currentTimerColor} 
+          />
+        )}
+
+        {activeMode === 'clock' && (
+          <ClockMode 
+            showSeconds={settings.showSeconds}
+            clockIs24Hour={settings.clockIs24Hour}
+            currentLabelColor={currentLabelColor}
+            currentTimerColor={currentTimerColor}
+            fontFamily={settings.flipFont}
+          />
+        )}
+
+        {activeMode === 'countdown' && (
+          <CountdownMode 
+            status={countdownStatus}
+            timeLeft={countdownTimeLeft}
+            showSeconds={settings.showSeconds ?? true}
+            currentLabelColor={currentLabelColor}
+            currentTimerColor={currentTimerColor}
+            fontFamily={settings.flipFont}
+          />
+        )}
 
         <ControlsDock 
-          onReset={resetTimer} 
+          onReset={handleReset()} 
           onSettingsClick={() => setShowSettings(true)} 
           isPinned={!!settings.isPinned}
           onTogglePin={async (pinned) => {
@@ -237,3 +308,4 @@ export default function App() {
     </div>
   );
 }
+

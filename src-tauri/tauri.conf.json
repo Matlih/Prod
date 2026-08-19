@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "Prod",
-    "version": "2.1.0"
+    "version": "3.0.0"
   },
   "tauri": {
     "allowlist": {
@@ -20,7 +20,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Copyright © 2026 Montazar Matlih",
       "deb": {
         "depends": []
       },
@@ -39,6 +39,7 @@
         "entitlements": null,
         "exceptionDomain": "",
         "frameworks": [],
+        "license": "../LICENSE",
         "providerShortName": null,
         "signingIdentity": null
       },
@@ -48,11 +49,17 @@
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "wix": {
+          "license": "../LICENSE"
+        },
+        "nsis": {
+          "license": "../LICENSE"
+        }
       }
     },
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:;"
     },
     "updater": {
       "active": false

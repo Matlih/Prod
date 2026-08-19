@@ -13,6 +13,14 @@ export const defaultSettings: Settings = {
   isPinned: false,
   strictMode: true,
   zenModeScale: '80',
+  widgetMode: 'prod',
+  flipFont: 'bodoni',
+  showSeconds: false,
+  clockIs24Hour: false,
+  countdownDuration: 15,
+  countdownHours: 0,
+  countdownMinutes: 15,
+  countdownSeconds: 0,
   themeColors: {
     light: {
       workLabel: '#2563eb', // blue-600

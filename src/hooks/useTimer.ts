@@ -78,7 +78,7 @@ export function useTimer(settings: Settings) {
     };
   }, [status, tick]);
 
-  const toggleTimer = () => {
+  const toggleTimer = useCallback(() => {
     if (status === 'idle') {
       initAudio(); // Unlock audio context on user gesture
       setStatus('running');
@@ -87,16 +87,16 @@ export function useTimer(settings: Settings) {
     } else if (status === 'paused') {
       setStatus('running');
     }
-  };
+  }, [status]);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setStatus('idle');
     setPhase('work');
     targetEndTimeRef.current = null;
     const duration = Math.max(1, settings.workDuration * 60);
     setTimeLeft(duration);
     setCurrentTotalDuration(duration);
-  };
+  }, [settings.workDuration]);
 
   return { phase, status, timeLeft, currentTotalDuration, toggleTimer, resetTimer };
 }

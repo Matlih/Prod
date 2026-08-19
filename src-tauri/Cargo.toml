@@ -1,9 +1,9 @@
 [package]
 name = "app"
-version = "2.1.0"
+version = "3.0.0"
 description = "A Tauri App"
 authors = ["Matlih"]
-license = ""
+license = "PolyForm-Noncommercial-1.0.0"
 repository = ""
 default-run = "app"
 edition = "2021"

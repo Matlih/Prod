@@ -1,6 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Orbitron:wght@400..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/orbitron/v35/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1ny_Cmxpg.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/orbitron/v35/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nysimxpg.ttf') format('truetype');
+}
 
 @layer base {
   body {
@@ -9,6 +27,27 @@
   .dark body {
     @apply bg-transparent text-neutral-50;
   }
+}
+
+.font-flip,
+.font-flip-bodoni {
+  font-family: 'Bodoni Moda', 'Bodoni MT', Didot, 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+}
+
+.font-flip-jakarta {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+}
+
+.font-flip-mono {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+}
+
+.font-flip-digital {
+  font-family: 'Orbitron', 'Share Tech Mono', monospace;
+  font-weight: 700;
 }
 
 /* Custom Scrollbar */
