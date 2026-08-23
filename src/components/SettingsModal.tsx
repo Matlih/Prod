@@ -38,7 +38,21 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
   const [cdHoursStr, setCdHoursStr] = useState((settings.countdownHours ?? 0).toString());
   const [cdMinsStr, setCdMinsStr] = useState((settings.countdownMinutes ?? (settings.countdownDuration || 15)).toString());
   const [cdSecsStr, setCdSecsStr] = useState((settings.countdownSeconds ?? 0).toString());
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
   const originalSizeRef = useRef<any>(null);
+  const easterEggContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleEasterEgg = () => {
+    setShowEasterEgg(prev => {
+      const nextState = !prev;
+      if (nextState) {
+        setTimeout(() => {
+          easterEggContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 80);
+      }
+      return nextState;
+    });
+  };
 
   const normalizeAndSetCountdown = (hVal: number, mVal: number, sVal: number, enforceNonZero = false) => {
     let total = (hVal * 3600) + (mVal * 60) + sVal;
@@ -633,8 +647,102 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
             </div>
           </div>
 
-          <div className="pt-6 pb-2 text-center">
-            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v3.1.0</span>
+          <div ref={easterEggContainerRef} className="pt-6 pb-2 text-center flex flex-col items-center justify-center">
+            <button
+              onClick={handleToggleEasterEgg}
+              className="text-[10px] text-neutral-400 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-white font-medium tracking-widest uppercase transition-all duration-300 cursor-pointer select-none active:scale-95 py-1 px-3 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            >
+              {showEasterEgg ? (
+                <span className="text-neutral-600 dark:text-neutral-300 font-serif normal-case italic text-xs tracking-normal inline-block">
+                  A note from the developer
+                </span>
+              ) : (
+                'Prod v3.1.0'
+              )}
+            </button>
+
+            {showEasterEgg && (
+              <>
+                <style>{`
+                  @keyframes appleSpringCard {
+                    0% {
+                      opacity: 0;
+                      transform: scale(0.94) translateY(10px);
+                      filter: blur(6px);
+                    }
+                    65% {
+                      opacity: 1;
+                      transform: scale(1.008) translateY(-1px);
+                      filter: blur(0px);
+                    }
+                    100% {
+                      opacity: 1;
+                      transform: scale(1) translateY(0px);
+                      filter: blur(0px);
+                    }
+                  }
+                  @keyframes appleSpringText {
+                    0% {
+                      opacity: 0;
+                      transform: translateY(6px);
+                      filter: blur(4px);
+                    }
+                    100% {
+                      opacity: 1;
+                      transform: translateY(0px);
+                      filter: blur(0px);
+                    }
+                  }
+                  @keyframes appleSpringSig {
+                    0% {
+                      opacity: 0;
+                      transform: translateY(4px);
+                      filter: blur(3px);
+                    }
+                    100% {
+                      opacity: 1;
+                      transform: translateY(0px);
+                      filter: blur(0px);
+                    }
+                  }
+                `}</style>
+                <div 
+                  onClick={() => setShowEasterEgg(false)}
+                  className="mt-3 p-4 rounded-2xl bg-white/85 dark:bg-neutral-800/90 backdrop-blur-md border border-black/5 dark:border-white/10 text-center max-w-sm cursor-pointer shadow-lg shadow-black/5 dark:shadow-black/20 select-none hover:border-black/10 dark:hover:border-white/20 transition-colors"
+                  style={{
+                    animation: 'appleSpringCard 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                  }}
+                >
+                  {activeMode === 'prod' ? (
+                    <p 
+                      className="text-xs text-neutral-700 dark:text-neutral-200 italic font-serif leading-relaxed"
+                      style={{
+                        animation: 'appleSpringText 500ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both',
+                      }}
+                    >
+                      &ldquo;Take a breath—rest is not a reward for finishing, it&rsquo;s a requirement for continuing.&rdquo;
+                    </p>
+                  ) : (
+                    <p 
+                      className="text-xs text-neutral-700 dark:text-neutral-200 italic font-serif leading-relaxed"
+                      style={{
+                        animation: 'appleSpringText 500ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both',
+                      }}
+                    >
+                      &ldquo;Time is Currency, spend it well.&rdquo;
+                    </p>
+                  )}
+                  <div 
+                    className="mt-2.5 text-[11px] font-sans font-medium text-neutral-400 dark:text-neutral-500 tracking-wide"
+                    style={{
+                      animation: 'appleSpringSig 500ms cubic-bezier(0.16, 1, 0.3, 1) 160ms both',
+                    }}
+                  >
+                    — Made by <span className="text-neutral-800 dark:text-neutral-200 font-semibold">Azie</span>, for <span className="text-neutral-800 dark:text-neutral-200 font-semibold">Jah</span>.
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
