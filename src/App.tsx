@@ -66,25 +66,27 @@ export default function App() {
     const runEngine = async () => {
       try {
         const { appWindow, LogicalSize, currentMonitor } = await import('@tauri-apps/api/window');
+        const isFs = await appWindow.isFullscreen();
         
         const isDefaultState = (activeMode !== 'prod' || phase === 'work') && !showSettings;
         
         if (isDefaultState) {
-          // 1. We are in the Default State
-          await appWindow.setFullscreen(false);
+          // If in fullscreen, stay in fullscreen
+          if (settings.isFullscreen || isFs) {
+            return;
+          }
           
           if (userBoundsRef.current) {
-            // We just returned from a non-default state. Restore the user's custom bounds.
+            // Restore user's custom bounds
             if (userBoundsRef.current.size) await appWindow.setSize(userBoundsRef.current.size);
             if (userBoundsRef.current.position) await appWindow.setPosition(userBoundsRef.current.position);
-            userBoundsRef.current = null; // Clear the cache
+            userBoundsRef.current = null;
           }
           return;
         }
         
         // 2. We are entering a non-default state
-        // If we haven't cached the default bounds yet, do it NOW before altering the window.
-        if (!userBoundsRef.current) {
+        if (!userBoundsRef.current && !isFs) {
           userBoundsRef.current = {
             size: await appWindow.outerSize(),
             position: await appWindow.outerPosition()
@@ -109,8 +111,11 @@ export default function App() {
              }
           }
         } else if (showSettings) {
-          await appWindow.setFullscreen(false);
-          // Settings Modal open: expand to fit settings
+          // If already in fullscreen, keep fullscreen!
+          if (isFs || settings.isFullscreen) {
+            return;
+          }
+          // Settings Modal open in windowed mode: expand to fit settings if small
           const currentSize = await appWindow.outerSize();
           const factor = await appWindow.scaleFactor();
           const width = currentSize.width / factor;
@@ -126,7 +131,7 @@ export default function App() {
     };
     
     runEngine();
-  }, [phase, showSettings, settings.strictMode, activeMode, settings.zenModeScale]);
+  }, [phase, showSettings, settings.strictMode, activeMode, settings.zenModeScale, settings.isFullscreen]);
 
   // Resolve Custom Colors
   const activePalette = settings.themeColors ? (settings.isDarkMode ? settings.themeColors.dark : settings.themeColors.light) : undefined;
@@ -138,12 +143,80 @@ export default function App() {
   // Calculate progress for animation
   const progress = prodStatus === 'idle' ? 1 : prodTimeLeft / currentTotalDuration;
 
-  const handleBackgroundClick = () => {
-    if (activeMode === 'prod') {
-      toggleTimer();
-    } else if (activeMode === 'countdown') {
-      toggleCountdown();
+  const clickTimerRef = useRef<number | null>(null);
+
+  const toggleFullscreen = async () => {
+    if (window.__TAURI__) {
+      try {
+        const { appWindow } = await import('@tauri-apps/api/window');
+        const currentFs = await appWindow.isFullscreen();
+        const nextFs = !currentFs;
+        
+        if (nextFs) {
+          // Cache window bounds before entering fullscreen
+          userBoundsRef.current = {
+            size: await appWindow.outerSize(),
+            position: await appWindow.outerPosition()
+          };
+          await appWindow.setFullscreen(true);
+        } else {
+          await appWindow.setFullscreen(false);
+          if (userBoundsRef.current) {
+            if (userBoundsRef.current.size) await appWindow.setSize(userBoundsRef.current.size);
+            if (userBoundsRef.current.position) await appWindow.setPosition(userBoundsRef.current.position);
+            userBoundsRef.current = null;
+          }
+        }
+        setSettings(s => ({ ...s, isFullscreen: nextFs }));
+      } catch (e) {
+        console.warn("Fullscreen toggle failed", e);
+      }
     }
+  };
+
+  // Restore fullscreen on initial startup if persisted
+  useEffect(() => {
+    if (settings.isFullscreen && window.__TAURI__) {
+      import('@tauri-apps/api/window').then(({ appWindow }) => {
+        appWindow.setFullscreen(true).catch(() => {});
+      });
+    }
+  }, []);
+
+  // Global F11 listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F11') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleBackgroundSingleClick = () => {
+    if (activeMode === 'clock') return;
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+    }
+    clickTimerRef.current = window.setTimeout(() => {
+      clickTimerRef.current = null;
+      if (activeMode === 'prod') {
+        toggleTimer();
+      } else if (activeMode === 'countdown') {
+        toggleCountdown();
+      }
+    }, 220);
+  };
+
+  const handleBackgroundDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (clickTimerRef.current !== null) {
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+    toggleFullscreen();
   };
 
   const handleReset = () => {
@@ -163,13 +236,14 @@ export default function App() {
       
       {/* Clickable Background layer */}
       <div 
-        className={`absolute inset-0 z-0 ${activeMode !== 'clock' ? 'cursor-pointer' : ''} transition-colors duration-700 ${
+        className={`absolute inset-0 z-0 ${activeMode !== 'clock' ? 'cursor-pointer' : 'cursor-default'} transition-colors duration-700 ${
           activeMode === 'prod'
             ? prodStatus === 'idle' ? 'bg-transparent' : phase === 'work' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
             : 'bg-transparent'
         }`}  
-        onClick={handleBackgroundClick}
-        title={activeMode !== 'clock' ? "Click to Play/Pause" : undefined}
+        onClick={handleBackgroundSingleClick}
+        onDoubleClick={handleBackgroundDoubleClick}
+        title={activeMode !== 'clock' ? "Click to Play/Pause, Double-click for Fullscreen" : "Double-click for Fullscreen"}
       />
 
       {/* Drag Region Handle */}
@@ -219,6 +293,7 @@ export default function App() {
           <ClockMode 
             showSeconds={settings.showSeconds}
             clockIs24Hour={settings.clockIs24Hour}
+            clockTimeZone={settings.clockTimeZone}
             currentLabelColor={currentLabelColor}
             currentTimerColor={currentTimerColor}
             fontFamily={settings.flipFont}

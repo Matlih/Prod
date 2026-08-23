@@ -26,7 +26,7 @@ export interface ThemeColors {
 }
 
 export type WidgetMode = 'prod' | 'clock' | 'countdown';
-export type FlipFont = 'bodoni' | 'jakarta' | 'mono' | 'digital';
+export type FlipFont = 'bodoni' | 'jakarta' | 'mono' | 'digital' | 'bebas' | 'cinzel';
 
 export interface Settings {
   preset: Preset;
@@ -45,6 +45,8 @@ export interface Settings {
   flipFont?: FlipFont;
   showSeconds?: boolean;
   clockIs24Hour?: boolean;
+  clockTimeZone?: string;
+  isFullscreen?: boolean;
   countdownDuration?: number;
   countdownHours?: number;
   countdownMinutes?: number;

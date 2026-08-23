@@ -26,10 +26,17 @@ export const FlipDisplay = ({
   const unitCount = (hasHours ? 1 : 0) + 1 + (hasSeconds ? 1 : 0);
 
   const isWideFont = fontFamily === 'digital' || fontFamily === 'mono';
-  const isMediumFont = fontFamily === 'jakarta';
+  const isTallFont = fontFamily === 'bebas';
+  const isMediumFont = fontFamily === 'jakarta' || fontFamily === 'cinzel';
 
   // Proportional dual-axis scaling tailored to glyph aspect ratios
-  const computedFontSize = isWideFont
+  const computedFontSize = isTallFont
+    ? unitCount >= 3
+      ? 'min(15vw, 45vh)'
+      : unitCount === 2
+      ? 'min(23vw, 52vh)'
+      : 'min(40vw, 60vh)'
+    : isWideFont
     ? unitCount >= 3
       ? 'min(9.6vw, 34vh)'
       : unitCount === 2
@@ -39,15 +46,19 @@ export const FlipDisplay = ({
     ? unitCount >= 3
       ? 'min(11.5vw, 38vh)'
       : unitCount === 2
-      ? 'min(21vw, 50vh)'
-      : 'min(35vw, 58vh)'
+      ? 'min(20vw, 48vh)'
+      : 'min(35vw, 56vh)'
     : unitCount >= 3
     ? 'min(13.5vw, 42vh)'
     : unitCount === 2
     ? 'min(18.5vw, 44vh)'
     : 'min(36vw, 55vh)';
 
-  const computedGap = isWideFont
+  const computedGap = isTallFont
+    ? unitCount >= 3
+      ? 'min(2.5vw, 3.5vh)'
+      : 'min(4vw, 5vh)'
+    : isWideFont
     ? unitCount >= 3
       ? 'min(1.8vw, 2.5vh)'
       : 'min(3.5vw, 4vh)'
@@ -79,20 +90,28 @@ export const FlipDisplay = ({
   return (
     <>
       <style>{`
-        @keyframes prodFlipTop {
+        @keyframes prodFlipLeaf {
           0% {
             transform: rotateX(0deg);
           }
           100% {
-            transform: rotateX(-90deg);
+            transform: rotateX(-180deg);
           }
         }
-        @keyframes prodFlipBottom {
+        @keyframes prodFlipFrontShadow {
           0% {
-            transform: rotateX(90deg);
+            opacity: 0;
           }
           100% {
-            transform: rotateX(0deg);
+            opacity: 0.4;
+          }
+        }
+        @keyframes prodFlipBackShadow {
+          0% {
+            opacity: 0.4;
+          }
+          100% {
+            opacity: 0;
           }
         }
       `}</style>

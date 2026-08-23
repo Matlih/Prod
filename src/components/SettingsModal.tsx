@@ -256,19 +256,21 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                   <span className="text-xs text-neutral-500">Numerals style</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'bodoni', label: 'Bodoni (Default)', class: 'font-flip-bodoni' },
-                  { id: 'jakarta', label: 'Plus Jakarta Sans', class: 'font-flip-jakarta' },
+                  { id: 'bodoni', label: 'DM Serif', class: 'font-flip-serif' },
+                  { id: 'jakarta', label: 'Jakarta', class: 'font-flip-jakarta' },
+                  { id: 'bebas', label: 'Bebas Neue', class: 'font-flip-bebas' },
+                  { id: 'cinzel', label: 'Cinzel', class: 'font-flip-cinzel' },
                   { id: 'mono', label: 'Space Mono', class: 'font-flip-mono' },
-                  { id: 'digital', label: 'Digital Number', class: 'font-flip-digital' },
+                  { id: 'digital', label: 'Digital', class: 'font-flip-digital' },
                 ].map((fontOption) => (
                   <button
                     key={fontOption.id}
                     onClick={() => setSettings(s => ({ ...s, flipFont: fontOption.id as any }))}
                     className={`p-2.5 rounded-xl border text-left flex flex-col justify-center transition ${(settings.flipFont || 'bodoni') === fontOption.id ? 'border-neutral-900 dark:border-white bg-white dark:bg-neutral-900 shadow-sm' : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'}`}
                   >
-                    <span className="text-[11px] text-neutral-500 font-sans">{fontOption.label}</span>
+                    <span className="text-[11px] text-neutral-500 font-sans truncate">{fontOption.label}</span>
                     <span className={`text-base font-bold mt-0.5 ${fontOption.class} text-neutral-900 dark:text-white`}>07:35</span>
                   </button>
                 ))}
@@ -297,6 +299,33 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                   24h
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Clock: Time Zone Selector */}
+          {activeMode === 'clock' && (
+            <div className="flex items-center justify-between p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800">
+              <div>
+                <span className="font-medium block">Time Zone</span>
+                <span className="text-xs text-neutral-500">Local or regional time</span>
+              </div>
+              <select
+                value={settings.clockTimeZone || ''}
+                onChange={(e) => setSettings(s => ({ ...s, clockTimeZone: e.target.value }))}
+                className="px-3 py-2 text-xs rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 outline-none font-medium text-neutral-900 dark:text-white cursor-pointer shadow-sm max-w-[170px]"
+              >
+                <option value="">System Local</option>
+                <option value="UTC">UTC / GMT</option>
+                <option value="America/New_York">New York (EST/EDT)</option>
+                <option value="America/Los_Angeles">San Francisco (PST/PDT)</option>
+                <option value="America/Chicago">Chicago (CST/CDT)</option>
+                <option value="Europe/London">London (BST/GMT)</option>
+                <option value="Europe/Paris">Paris / Berlin (CET)</option>
+                <option value="Asia/Dubai">Dubai (GST, UTC+4)</option>
+                <option value="Asia/Tokyo">Tokyo (JST, UTC+9)</option>
+                <option value="Asia/Singapore">Singapore (SGT, UTC+8)</option>
+                <option value="Australia/Sydney">Sydney (AEST, UTC+10)</option>
+              </select>
             </div>
           )}
 
@@ -605,7 +634,7 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
           </div>
 
           <div className="pt-6 pb-2 text-center">
-            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v3.0.0</span>
+            <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium tracking-widest uppercase">Prod v3.1.0</span>
           </div>
         </div>
       </div>

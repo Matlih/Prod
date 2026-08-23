@@ -17,6 +17,8 @@ export const defaultSettings: Settings = {
   flipFont: 'bodoni',
   showSeconds: false,
   clockIs24Hour: false,
+  clockTimeZone: '',
+  isFullscreen: false,
   countdownDuration: 15,
   countdownHours: 0,
   countdownMinutes: 15,

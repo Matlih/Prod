@@ -21,7 +21,11 @@ export const FlipDigit = ({ digit, fontSize, color, fontFamily = 'bodoni' }: Fli
       ? 'font-flip-mono'
       : fontFamily === 'digital'
       ? 'font-flip-digital'
-      : 'font-flip-bodoni';
+      : fontFamily === 'bebas'
+      ? 'font-flip-bebas'
+      : fontFamily === 'cinzel'
+      ? 'font-flip-cinzel'
+      : 'font-flip-serif';
 
   useEffect(() => {
     if (digit !== currentDigit) {
@@ -60,9 +64,9 @@ export const FlipDigit = ({ digit, fontSize, color, fontFamily = 'bodoni' }: Fli
         {digit}
       </span>
 
-      {/* 1. Static Top: shows currentDigit top half */}
+      {/* 1. Static Top: shows currentDigit (new) top half */}
       <div
-        className="absolute top-0 left-0 right-0 h-1/2 overflow-hidden flex items-start justify-center pointer-events-none"
+        className="absolute top-0 left-0 right-0 h-1/2 overflow-hidden flex items-start justify-center pointer-events-none z-0 bg-neutral-50 dark:bg-neutral-900 transition-colors duration-700"
         style={{ backfaceVisibility: 'hidden' }}
       >
         <span
@@ -73,70 +77,82 @@ export const FlipDigit = ({ digit, fontSize, color, fontFamily = 'bodoni' }: Fli
         </span>
       </div>
 
-      {/* 2. Static Bottom: emptied during flip to eliminate double-exposure stutter */}
-      {!isFlipping && (
-        <div
-          className="absolute bottom-0 left-0 right-0 h-1/2 overflow-hidden flex items-start justify-center pointer-events-none"
-          style={{ backfaceVisibility: 'hidden' }}
+      {/* 2. Static Bottom: shows prevDigit while flipping (stays undisturbed until covered), currentDigit when idle */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1/2 overflow-hidden flex items-start justify-center pointer-events-none z-0 bg-neutral-50 dark:bg-neutral-900 transition-colors duration-700"
+        style={{ backfaceVisibility: 'hidden' }}
+      >
+        <span
+          className="font-bold tracking-tight tabular-nums transition-colors duration-700 drop-shadow-sm px-[0.03em]"
+          style={{
+            color,
+            lineHeight: 1,
+            transform: 'translateY(-50%)',
+          }}
         >
-          <span
-            className="font-bold tracking-tight tabular-nums transition-colors duration-700 drop-shadow-sm px-[0.03em]"
-            style={{
-              color,
-              lineHeight: 1,
-              transform: 'translateY(-50%)',
-            }}
-          >
-            {currentDigit}
-          </span>
-        </div>
-      )}
+          {isFlipping ? prevDigit : currentDigit}
+        </span>
+      </div>
 
-      {/* 3. Top Flap: notebook flip down showing prevDigit top half */}
+      {/* 3. The 3D Rotating Leaf (Unified Double-Sided Card) */}
       {isFlipping && (
         <div
-          className="absolute top-0 left-0 right-0 h-1/2 overflow-hidden flex items-start justify-center z-20"
+          className="absolute top-0 left-0 right-0 h-1/2 z-20 pointer-events-none"
           style={{
             transformOrigin: '50% 100%',
-            animation: 'prodFlipTop 220ms cubic-bezier(0.4, 0, 0.2, 1) forwards',
-            backfaceVisibility: 'hidden',
+            transformStyle: 'preserve-3d',
+            animation: 'prodFlipLeaf 420ms cubic-bezier(0.37, 0, 0.63, 1) forwards',
           }}
         >
-          <span
-            className="font-bold tracking-tight tabular-nums drop-shadow-sm px-[0.03em]"
-            style={{ color, lineHeight: 1 }}
+          {/* Front Face: Upper half of old digit (folds down 0deg -> -90deg) */}
+          <div
+            className="absolute inset-0 overflow-hidden flex items-start justify-center bg-neutral-50 dark:bg-neutral-900 transition-colors duration-700"
+            style={{ backfaceVisibility: 'hidden' }}
           >
-            {prevDigit}
-          </span>
-        </div>
-      )}
+            <span
+              className="font-bold tracking-tight tabular-nums drop-shadow-sm px-[0.03em]"
+              style={{ color, lineHeight: 1 }}
+            >
+              {prevDigit}
+            </span>
+            <div
+              className="absolute inset-0 bg-black/40 pointer-events-none"
+              style={{
+                animation: 'prodFlipFrontShadow 420ms cubic-bezier(0.37, 0, 0.63, 1) forwards',
+              }}
+            />
+          </div>
 
-      {/* 4. Bottom Flap: notebook flip down revealing currentDigit bottom half */}
-      {isFlipping && (
-        <div
-          className="absolute bottom-0 left-0 right-0 h-1/2 overflow-hidden flex items-start justify-center z-20"
-          style={{
-            transformOrigin: '50% 0%',
-            animation: 'prodFlipBottom 220ms cubic-bezier(0, 0, 0.2, 1) 200ms forwards',
-            transform: 'rotateX(90deg)',
-            backfaceVisibility: 'hidden',
-          }}
-        >
-          <span
-            className="font-bold tracking-tight tabular-nums drop-shadow-sm px-[0.03em]"
+          {/* Back Face: Lower half of new incoming digit (swings down -90deg -> -180deg to cover old bottom) */}
+          <div
+            className="absolute inset-0 overflow-hidden flex items-start justify-center bg-neutral-50 dark:bg-neutral-900 transition-colors duration-700"
             style={{
-              color,
-              lineHeight: 1,
-              transform: 'translateY(-50%)',
+              backfaceVisibility: 'hidden',
+              transform: 'rotateX(180deg)',
             }}
           >
-            {currentDigit}
-          </span>
+            <span
+              className="font-bold tracking-tight tabular-nums drop-shadow-sm px-[0.03em]"
+              style={{
+                color,
+                lineHeight: 1,
+                transform: 'translateY(-50%)',
+              }}
+            >
+              {currentDigit}
+            </span>
+            <div
+              className="absolute inset-0 bg-black/40 pointer-events-none"
+              style={{
+                animation: 'prodFlipBackShadow 420ms cubic-bezier(0.37, 0, 0.63, 1) forwards',
+              }}
+            />
+          </div>
         </div>
       )}
 
       {/* Center Split Slit Line */}
-      <div className="absolute top-1/2 left-0 right-0 h-[max(2px,0.35vh)] -translate-y-1/2 bg-neutral-50 dark:bg-neutral-900 pointer-events-none z-30 transition-colors duration-700" />
+      <div className="absolute top-1/2 left-0 right-0 h-[max(2px,0.32vh)] -translate-y-1/2 bg-neutral-50 dark:bg-neutral-900 pointer-events-none z-30 transition-colors duration-700" />
     </div>
   );
 };

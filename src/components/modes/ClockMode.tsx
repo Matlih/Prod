@@ -5,6 +5,7 @@ import { FlipFont } from '../../types';
 interface ClockModeProps {
   showSeconds?: boolean;
   clockIs24Hour?: boolean;
+  clockTimeZone?: string;
   currentLabelColor?: string;
   currentTimerColor?: string;
   fontFamily?: FlipFont;
@@ -13,6 +14,7 @@ interface ClockModeProps {
 export const ClockMode = ({
   showSeconds = false,
   clockIs24Hour = false,
+  clockTimeZone,
   currentLabelColor,
   currentTimerColor,
   fontFamily,
@@ -26,15 +28,29 @@ export const ClockMode = ({
     return () => clearInterval(timer);
   }, []);
 
-  const hoursRaw = time.getHours();
-  const hoursStr = clockIs24Hour
-    ? hoursRaw.toString().padStart(2, '0')
-    : (hoursRaw % 12 || 12).toString().padStart(2, '0');
-  const minutesStr = time.getMinutes().toString().padStart(2, '0');
-  const secondsStr = time.getSeconds().toString().padStart(2, '0');
-  const ampm = clockIs24Hour ? undefined : (hoursRaw >= 12 ? 'PM' : 'AM');
+  // Format time according to timeZone & hour format
+  const timeFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: clockTimeZone || undefined,
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: !clockIs24Hour,
+    hourCycle: clockIs24Hour ? 'h23' : 'h12',
+  });
+
+  const parts = timeFormatter.formatToParts(time);
+  const hourPart = parts.find(p => p.type === 'hour')?.value || '00';
+  const minPart = parts.find(p => p.type === 'minute')?.value || '00';
+  const secPart = parts.find(p => p.type === 'second')?.value || '00';
+  const dayPeriodPart = parts.find(p => p.type === 'dayPeriod')?.value;
+
+  const hoursStr = hourPart.padStart(2, '0');
+  const minutesStr = minPart.padStart(2, '0');
+  const secondsStr = secPart.padStart(2, '0');
+  const ampm = clockIs24Hour ? undefined : (dayPeriodPart ? dayPeriodPart.toUpperCase() : undefined);
 
   const dateOptions: Intl.DateTimeFormatOptions = {
+    timeZone: clockTimeZone || undefined,
     weekday: 'long',
     day: 'numeric',
     month: 'long',
