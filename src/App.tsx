@@ -9,12 +9,14 @@ import { ControlsDock } from './components/ControlsDock';
 import { SettingsModal } from './components/SettingsModal';
 import { OutlineAnimation, LineAnimation, WaterAnimation, PulseAnimation } from './components/animations/Animations';
 import { X } from 'lucide-react';
+import { SessionRecoveryState } from './types';
+import { useSessionRecovery } from './hooks/useSessionRecovery';
 
 export default function App() {
   const { settings, setSettings } = useSettings();
   const activeMode = settings.widgetMode || 'prod';
 
-  const { phase, status: prodStatus, timeLeft: prodTimeLeft, currentTotalDuration, toggleTimer, resetTimer } = useTimer(settings);
+  const { phase, status: prodStatus, timeLeft: prodTimeLeft, currentTotalDuration, toggleTimer, resetTimer, restoreTimer } = useTimer(settings);
 
   const rawCountdownSeconds = (
     (settings.countdownHours !== undefined || settings.countdownMinutes !== undefined || settings.countdownSeconds !== undefined)
@@ -24,13 +26,52 @@ export default function App() {
 
   const countdownTotalSeconds = rawCountdownSeconds <= 0 ? 10 : rawCountdownSeconds;
 
-  const { status: countdownStatus, timeLeft: countdownTimeLeft, toggleCountdown, resetCountdown } = useCountdown(
+  const { status: countdownStatus, timeLeft: countdownTimeLeft, toggleCountdown, resetCountdown, restoreCountdown } = useCountdown(
     countdownTotalSeconds,
     settings.sound,
     settings.isMuted
   );
 
   const [showSettings, setShowSettings] = useState(false);
+  const [recoverySession, setRecoverySession] = useState<SessionRecoveryState | null>(null);
+  const [recoveryPrompt, setRecoveryPrompt] = useState({ title: '', yes: '', no: '' });
+  const { loadSession, clearSession } = useSessionRecovery();
+
+  useEffect(() => {
+    const session = loadSession();
+    if (session) {
+      setRecoverySession(session);
+      
+      const prompts = [
+        { title: "Resume previous session?", yes: "Continue", no: "Discard" },
+        { title: "You left a timer running.", yes: "Pick up where I left off", no: "Start over" },
+        { title: "Ready to jump back in?", yes: "Restore", no: "Start fresh" }
+      ];
+      setRecoveryPrompt(prompts[Math.floor(Math.random() * prompts.length)]);
+    }
+  }, []);
+
+  const handleRestore = () => {
+    if (!recoverySession) return;
+    
+    // Switch to the correct mode if we aren't in it
+    if (recoverySession.mode !== activeMode) {
+      setSettings(prev => ({ ...prev, widgetMode: recoverySession.mode }));
+    }
+
+    if (recoverySession.mode === 'prod') {
+      restoreTimer(recoverySession);
+    } else if (recoverySession.mode === 'countdown') {
+      restoreCountdown(recoverySession);
+    }
+    setRecoverySession(null);
+  };
+
+  const handleDiscard = () => {
+    clearSession();
+    setRecoverySession(null);
+  };
+
 
   // Initialize Pin State on boot
   useEffect(() => {
@@ -68,7 +109,7 @@ export default function App() {
         const { appWindow, LogicalSize, currentMonitor } = await import('@tauri-apps/api/window');
         const isFs = await appWindow.isFullscreen();
         
-        const isDefaultState = (activeMode !== 'prod' || phase === 'work') && !showSettings;
+        const isDefaultState = (activeMode !== 'prod' || phase === 'work') && !showSettings && !recoverySession;
         
         if (isDefaultState) {
           // If in fullscreen, stay in fullscreen
@@ -110,12 +151,12 @@ export default function App() {
                 await appWindow.center();
              }
           }
-        } else if (showSettings) {
+        } else if (showSettings || recoverySession) {
           // If already in fullscreen, keep fullscreen!
           if (isFs || settings.isFullscreen) {
             return;
           }
-          // Settings Modal open in windowed mode: expand to fit settings if small
+          // Settings/Recovery Modal open in windowed mode: expand to fit if small
           const currentSize = await appWindow.outerSize();
           const factor = await appWindow.scaleFactor();
           const width = currentSize.width / factor;
@@ -131,7 +172,7 @@ export default function App() {
     };
     
     runEngine();
-  }, [phase, showSettings, settings.strictMode, activeMode, settings.zenModeScale, settings.isFullscreen]);
+  }, [phase, showSettings, recoverySession, settings.strictMode, activeMode, settings.zenModeScale, settings.isFullscreen]);
 
   // Resolve Custom Colors
   const activePalette = settings.themeColors ? (settings.isDarkMode ? settings.themeColors.dark : settings.themeColors.light) : undefined;
@@ -380,7 +421,31 @@ export default function App() {
           onClose={() => setShowSettings(false)} 
         />
       )}
+
+      {/* Recovery Session Modal */}
+      {recoverySession && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md">
+          <div className="bg-white dark:bg-[#1a1a1a] rounded-xl p-6 shadow-2xl flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
+              {recoveryPrompt.title}
+            </h2>
+            <div className="flex space-x-4">
+              <button 
+                onClick={handleRestore}
+                className="px-5 py-2.5 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-medium hover:opacity-90 transition"
+              >
+                {recoveryPrompt.yes}
+              </button>
+              <button 
+                onClick={handleDiscard}
+                className="px-5 py-2.5 rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+              >
+                {recoveryPrompt.no}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

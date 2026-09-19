@@ -657,7 +657,7 @@ export const SettingsModal = ({ settings, setSettings, onClose }: SettingsModalP
                   A note from the developer
                 </span>
               ) : (
-                'Prod v3.1.0'
+                'Prod v3.2.0'
               )}
             </button>
 

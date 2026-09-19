@@ -52,3 +52,11 @@ export interface Settings {
   countdownMinutes?: number;
   countdownSeconds?: number;
 }
+
+export interface SessionRecoveryState {
+  mode: WidgetMode;
+  status: TimerStatus;
+  timeLeft: number;
+  totalDuration: number;
+  phase?: TimerPhase; // only used in prod mode
+}

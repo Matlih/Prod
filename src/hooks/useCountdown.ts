@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { SoundType, TimerStatus } from '../types';
+import { SoundType, TimerStatus, SessionRecoveryState } from '../types';
 import { playSound, initAudio } from '../utils/audio';
+import { useSessionRecovery } from './useSessionRecovery';
 
 export function useCountdown(totalSeconds: number, sound: SoundType, isMuted: boolean) {
   const [status, setStatus] = useState<TimerStatus>('idle');
   const [timeLeft, setTimeLeft] = useState(Math.max(1, totalSeconds));
   const targetEndTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+
+  const { saveSession, clearSession } = useSessionRecovery();
 
   useEffect(() => {
     if (status === 'idle') {
@@ -54,6 +57,18 @@ export function useCountdown(totalSeconds: number, sound: SoundType, isMuted: bo
     };
   }, [status, tick]);
 
+  // Auto-save effect
+  useEffect(() => {
+    if (status !== 'idle') {
+      saveSession({
+        mode: 'countdown',
+        status: status,
+        timeLeft: timeLeft,
+        totalDuration: totalSeconds
+      });
+    }
+  }, [status, timeLeft, totalSeconds]);
+
   const toggleCountdown = useCallback(() => {
     if (status === 'idle') {
       initAudio();
@@ -69,7 +84,14 @@ export function useCountdown(totalSeconds: number, sound: SoundType, isMuted: bo
     setStatus('idle');
     targetEndTimeRef.current = null;
     setTimeLeft(Math.max(1, totalSeconds));
+    clearSession();
   }, [totalSeconds]);
 
-  return { status, timeLeft, toggleCountdown, resetCountdown };
+  const restoreCountdown = useCallback((state: SessionRecoveryState) => {
+    setStatus('paused'); // Always restore as paused
+    setTimeLeft(state.timeLeft);
+    targetEndTimeRef.current = null;
+  }, []);
+
+  return { status, timeLeft, toggleCountdown, resetCountdown, restoreCountdown };
 }

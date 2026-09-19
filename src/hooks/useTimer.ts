@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { TimerPhase, TimerStatus, Settings } from '../types';
+import { TimerPhase, TimerStatus, Settings, SessionRecoveryState } from '../types';
 import { playSound, initAudio } from '../utils/audio';
+import { useSessionRecovery } from './useSessionRecovery';
 
 export function useTimer(settings: Settings) {
   const [phase, setPhase] = useState<TimerPhase>('work');
@@ -10,6 +11,8 @@ export function useTimer(settings: Settings) {
   
   const targetEndTimeRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+
+  const { saveSession, clearSession } = useSessionRecovery();
 
   // Sync initial time when settings change in idle state
   useEffect(() => {
@@ -78,6 +81,19 @@ export function useTimer(settings: Settings) {
     };
   }, [status, tick]);
 
+  // Auto-save effect
+  useEffect(() => {
+    if (status !== 'idle') {
+      saveSession({
+        mode: 'prod',
+        status: status,
+        timeLeft: timeLeft,
+        totalDuration: currentTotalDuration,
+        phase: phase
+      });
+    }
+  }, [status, timeLeft, phase, currentTotalDuration]);
+
   const toggleTimer = useCallback(() => {
     if (status === 'idle') {
       initAudio(); // Unlock audio context on user gesture
@@ -96,7 +112,16 @@ export function useTimer(settings: Settings) {
     const duration = Math.max(1, settings.workDuration * 60);
     setTimeLeft(duration);
     setCurrentTotalDuration(duration);
+    clearSession();
   }, [settings.workDuration]);
 
-  return { phase, status, timeLeft, currentTotalDuration, toggleTimer, resetTimer };
+  const restoreTimer = useCallback((state: SessionRecoveryState) => {
+    setStatus('paused'); // Always restore as paused (frozen in time)
+    setPhase(state.phase || 'work');
+    setTimeLeft(state.timeLeft);
+    setCurrentTotalDuration(state.totalDuration);
+    targetEndTimeRef.current = null;
+  }, []);
+
+  return { phase, status, timeLeft, currentTotalDuration, toggleTimer, resetTimer, restoreTimer };
 }
